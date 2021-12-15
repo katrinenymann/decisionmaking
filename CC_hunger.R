@@ -5,13 +5,16 @@ library(polspline)
 library(lmerTest)
 library(ggplot2)
 library(tibble)
+#install.packages("devtools")
+#devtools::install_github("easystats/report")
+library(report)
 
 # data from here:
 # https://zenodo.org/record/3764693
 
 # set working directory and load data
 #setwd("/Users/au183362/Documents/asst_prof/teaching/decision_making/E2021/classes/open_data/Fraser_Nettle/")
-a <- read.csv("Experiment_2.csv", sep = ";")
+a <- read.csv("../../Hunger study/Experiment_2.csv", sep = ";")
 
 # Preprocess data
 a$UniqueID=factor(paste(a$Experiment, a$Participant.Number))
@@ -61,6 +64,8 @@ samples <- jags(data, inits=NULL, params,
      model.file ="CC_jags.txt",
      n.chains=3, n.iter=5000, n.burnin=1000, n.thin=1)
 
+samples = jags_output
+
 # save maximum a posteriori (MAP) values for parameters from fitted model (see CC_jags.txt for more details)
 for (n in 1:nagents) {
   
@@ -80,6 +85,8 @@ for (n in 1:nagents) {
 
 MAP <- read.csv("../Andreas/MAP.13.csv")
 
+p_load(tidyverse)
+
 # Add participant info
 MAP$UniqueID = unique(np$UniqueID)
 np_round1 = np %>% subset(Round == 1) %>% select(UniqueID, Condition, Gender, BreakfastToday, BreakfastUsually, HowHungry, Punishment.First, GroupHunger, Condition.Name)
@@ -95,24 +102,91 @@ boxplot(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"])
 df$contr_avg <- rowMeans(c) # calculating the average contribution per participant
 
 model_pbeta = lm(pbeta ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-model_omega1 = lm(omega1 ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-model_lambda = lm(lambda ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-model_gamma = lm(gamma ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
 
-summary(model_pbeta)
-summary(model_omega1)
-summary(model_lambda)
-summary(model_gamma)
+report(model_pbeta)
 
 # plots
 mydat <- tibble(x=0:20, 
                 y = 0:20)
 
 ggplot(mydat, aes(x=x, y=y)) + 
-  geom_segment(df, mapping = aes(x = 0, xend = 20, y = 0, yend = pbeta*20, color = as.factor(Condition.Name))) +
+  geom_segment(df, mapping = aes(x = 0, xend = 20, y = 0, yend = pbeta*20, color = as.factor(BreakfastToday))) +
   xlim(0, 20) +
   ylim(0, 20) +
   xlab("Belief about other' contribution") +
   ylab("My contribution") +
   labs(color = "Condition") +
   ggtitle("Slopes for the Conditional Cooperation")
+
+df_nb = df %>% subset(BreakfastToday == 0)
+df_b = df %>% subset(BreakfastToday == 1)
+
+ggplot(mydat, aes(x=x, y=y)) + 
+  geom_segment(df_nb, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
+  geom_segment(df_b, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about other' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Slopes for the Conditional Cooperation")
+
+df_nb = df %>% subset(Condition == 0)
+df_b = df %>% subset(Condition == 1)
+
+ggplot(mydat, aes(x=x, y=y)) + 
+  geom_segment(df_nb, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
+  geom_segment(df_b, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about other' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Slopes for the Conditional Cooperation")
+
+# Lambda: Are one's decay rate determined by breakfast eating? 
+# In the paper they find the no breakfast group to be more influenced by the other group members 
+# aka weigting you belief over preference. Aka smaller decay rate
+model_lambda = lm(lambda ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+
+
+df_nb = df %>% subset(BreakfastToday == 0)
+df_b = df %>% subset(BreakfastToday == 1)
+
+# Boxplot
+ggplot(df, aes(x=as.factor(BreakfastToday), y=lambda)) + 
+  geom_boxplot() +
+  geom_point() + 
+  xlab("Condition") +
+  ylab("Value") +
+  ggtitle("Initial weighting of beliefs per condition")
+
+### 
+# Omega1 initial weigting of beliefs
+
+model_omega1 = lm(omega1 ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+report(model_omega1)
+
+# Boxplot
+ggplot(df, aes(x=as.factor(BreakfastToday), y=omega1)) + 
+  geom_boxplot() +
+  geom_point() +
+  xlab("Condition") +
+  ylab("Value") +
+  ggtitle("Gamma per condition")
+
+### Gamma
+# The higher the gamma, the more you weight your beliefs from last round
+# The lower the more you weight what you observed in the last round
+# Hungry people should have lower gamma since they weight more about what they observed / influence
+model_gamma = lm(gamma ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+
+report(model_gamma)
+
+# Boxplot
+ggplot(df, aes(x=as.factor(BreakfastToday), y=gamma)) + 
+  geom_boxplot() +
+  geom_point() +
+  xlab("Condition") +
+  ylab("Value") +
+  ggtitle("Decay rate per condition")
