@@ -1,6 +1,6 @@
 #Ida was here! :D
 # seed RNG and load libraries
-set.seed(1982)
+set.seed(13)
 library(R2jags)
 library(polspline)
 library(lmerTest)
