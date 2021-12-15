@@ -1,3 +1,4 @@
+#IDA WAS HERE! :D
 # seed RNG and load libraries
 set.seed(1982)
 library(R2jags)
