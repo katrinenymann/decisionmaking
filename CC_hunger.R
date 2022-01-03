@@ -1,5 +1,11 @@
+
 # seed seed and load libraries 
 set.seed(1982)
+
+#Ida was here! :D Hello Ida
+# seed RNG and load libraries
+set.seed(13)
+
 library(R2jags)
 library(polspline)
 library(lmerTest)
