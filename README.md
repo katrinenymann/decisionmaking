@@ -1,2 +1,2 @@
-# decisionmaking
-Code for decision making course
+# Decisionmaking
+Code for decision making exam
