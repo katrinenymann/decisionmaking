@@ -1,10 +1,9 @@
 # set seed and load libraries
-#Ida is back #this time actually me #hmm this time?
 set.seed(13)
 
-install.packages("gitcreds")
-library(gitcreds)
-gitcreds_set()
+#install.packages("gitcreds")
+#library(gitcreds)
+#gitcreds_set()
 
 library(R2jags)
 library(polspline)
@@ -19,7 +18,7 @@ library(report)
 # https://zenodo.org/record/3764693
 
 # set working directory and load data
-a <- read.csv("Experiment_2.csv", sep = ";")
+a <- read.csv("Experiment_2.csv")
 
 # Preprocess data
 a$UniqueID=factor(paste(a$Experiment, a$Participant.Number))
@@ -34,11 +33,11 @@ t.test(mc.data$HowHungry~mc.data$Condition.Name, var.equal=T)
 
 # Their analysis
 ### Model 2 (no punishment game, round 1)####
-m2 = lm(Contribution~Condition.Name, data=subset(a, Punishment.Round=="N" & Previous.Rounds==0))
-summary(m2)
+#m2 = lm(Contribution~Condition.Name, data=subset(a, Punishment.Round=="N" & Previous.Rounds==0))
+#summary(m2)
 #### Model 3 (no punishment game, after round 1)#####
-m3=lmer(Contribution~Lagged.Contribution+Lagged.MCO*Condition.Name + (1|UniqueGroup/UniqueID), data=subset(a, Punishment.Round=="N"), REML=F)
-summary(m3)
+#m3=lmer(Contribution~Lagged.Contribution+Lagged.MCO*Condition.Name + (1|UniqueGroup/UniqueID), data=subset(a, Punishment.Round=="N"), REML=F)
+#summary(m3)
 
 # extract info about experiment from data
 ntrials <- length(unique(np$Round)) # number of rounds played (aka trials)
@@ -70,11 +69,10 @@ samples <- jags(data, inits=NULL, params,
      model.file ="CC_jags.txt",
      n.chains=3, n.iter=5000, n.burnin=1000, n.thin=1)
 
-samples = jags_output #load jags output from earlier run
+#samples = jags_output #load jags output from earlier run
 
 # save maximum a posteriori (MAP) values for parameters from fitted model (see CC_jags.txt for more details)
 for (n in 1:nagents) {
-  
   X <- samples$BUGSoutput$sims.list$omega1[,n]
   MAP$omega1[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))]
 
@@ -86,10 +84,9 @@ for (n in 1:nagents) {
   
   X <- samples$BUGSoutput$sims.list$pbeta[,n]
   MAP$pbeta[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))] # this is the slope
-  
 }
 
-MAP <- read.csv("../Andreas/MAP.13.csv")
+#MAP <- read.csv("../Andreas/MAP.13.csv")
 
 p_load(tidyverse)
 
@@ -97,6 +94,10 @@ p_load(tidyverse)
 MAP$UniqueID = unique(np$UniqueID)
 np_round1 = np %>% subset(Round == 1) %>% select(UniqueID, Condition, Gender, BreakfastToday, BreakfastUsually, HowHungry, Punishment.First, GroupHunger, Condition.Name)
 df = merge(MAP, np_round1, by = "UniqueID")
+
+write.csv(df,"MAP13_df.csv", row.names = FALSE) #Ida trying
+
+#---ANALYSIS
 
 model_pbeta = lm(pbeta ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
 summary(model_pbeta)

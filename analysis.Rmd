@@ -1,0 +1,33 @@
+---
+title: "analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#We can use this as the final tidy analysis script of things we're including :)
+
+#libraries & loading
+```{r}
+#set working directory
+
+library(tidyverse) ; library(ggplot2)
+
+sam <- jags_output #load previously created jags object
+map <- read.csv("MAP.13.csv") #load previously created MAP values
+
+```
+
+#statistical analysis
+```{r}
+
+```
+
+
+#plotting
+```{r}
+
+```
+
