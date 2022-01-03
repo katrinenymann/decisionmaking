@@ -1,4 +1,5 @@
 # set seed and load libraries
+#Ida is back
 set.seed(13)
 
 library(R2jags)
