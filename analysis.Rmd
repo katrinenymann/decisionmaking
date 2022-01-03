@@ -7,27 +7,121 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#We can use this as the final tidy analysis script of things we're including :)
-
 #libraries & loading
 ```{r}
 #set working directory
 
 library(tidyverse) ; library(ggplot2)
 
-sam <- jags_output #load previously created jags object
-map <- read.csv("MAP.13.csv") #load previously created MAP values
+#sam <- jags_output #load previously created jags object
+#map <- read.csv("MAP.13.csv") #load previously created MAP values
+df <- read.csv("MAP13_df.csv") #load previously created MAP values + participant info
 
+df_nb_con = df %>% subset(Condition == 0) #in no breakfast condition/group
+df_b_con = df %>% subset(Condition == 1) #in breakfast condition/group
+
+df_nb = df %>% subset(BreakfastToday == 0) #ACTUALLY no breakfast
+df_b = df %>% subset(BreakfastToday == 1) #ACTUALLY breakfast
 ```
 
-#statistical analysis
+#PBETA (preference slope)
+#lm models
 ```{r}
-
+#@interaction effect doesn't make sense jf. Andreas
+model_pbeta = lm(pbeta ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+summary(model_pbeta)
+report(model_pbeta)
 ```
 
-
-#plotting
+#(non-existing) gender effects
 ```{r}
+t.test(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"]) #p = .008
+boxplot(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"])
+```
+
+#preference (pbeta) slopes
+```{r}
+mydat <- tibble(x=0:20, 
+                y = 0:20)
+
+ggplot(mydat, aes(x=x, y=y)) + 
+  geom_segment(df, mapping = aes(x = 0, xend = 20, y = 0, yend = pbeta*20, color = as.factor(BreakfastToday))) +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about others' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Individual Slopes for Cooperative Preferences (color = condition)")
+
+ggplot(mydat, aes(x=x, y=y)) + 
+  geom_segment(df_nb, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
+  geom_segment(df_b, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about others' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Mean group slopes for Cooperative Preferences (ACTUAL)")
+
+ggplot(mydat, aes(x=x, y=y)) + 
+  geom_segment(df_nb_con, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
+  geom_segment(df_b_con, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about others' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Mean group slopes for Cooperative Preferences (CONDITION)")
 
 ```
+
+#LAMBDA (decay rate)
+Lambda: Is one's decay rate determined by breakfast eating? 
+In the paper they find the no breakfast group to be more influenced by the other group members 
+aka weighting you belief over preference. Aka smaller decay rate
+```{r}
+#@DROP interaction effect
+model_lambda = lm(lambda ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+
+ggplot(df, aes(x=as.factor(BreakfastToday), y=lambda)) + 
+  geom_boxplot() +
+  geom_point() + 
+  xlab("Condition") +
+  ylab("Value") +
+  ggtitle("Decay rate per condition")
+
+```
+
+#OMEGA1 (initial weighting of beliefs)
+```{r}
+#@DROP interaction...
+model_omega1 = lm(omega1 ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+report(model_omega1)
+
+ggplot(df, aes(x=as.factor(BreakfastToday), y=omega1)) + 
+  geom_boxplot() +
+  geom_point() +
+  xlab("Condition") +
+  ylab("Value") +
+  ggtitle("Initial weighting of beliefs per condition")
+```
+
+#GAMMA
+The higher the gamma, the more you weight your beliefs from last round
+The lower, the more you weight what you observed in the last round
+Hungry people should have lower gamma since they weight more about what they observed / influence (?)
+```{r}
+#@drop interaction
+model_gamma = lm(gamma ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+report(model_gamma)
+
+# Boxplot
+ggplot(df, aes(x=as.factor(BreakfastToday), y=gamma)) + 
+  geom_boxplot() +
+  geom_point() +
+  xlab("Condition") +
+  ylab("Value") +
+  ggtitle("Parameter weighting of beliefs per condition")
+```
+
 

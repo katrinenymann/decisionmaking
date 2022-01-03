@@ -5,11 +5,8 @@ set.seed(13)
 #library(gitcreds)
 #gitcreds_set()
 
-library(R2jags)
-library(polspline)
-library(lmerTest)
-library(ggplot2)
-library(tibble)
+library(R2jags) ; library(polspline) ; library(lmerTest) ; library(ggplot2)
+library(tibble) ; library(dplyr)
 #install.packages("devtools")
 #devtools::install_github("easystats/report")
 library(report)
@@ -69,8 +66,6 @@ samples <- jags(data, inits=NULL, params,
      model.file ="CC_jags.txt",
      n.chains=3, n.iter=5000, n.burnin=1000, n.thin=1)
 
-#samples = jags_output #load jags output from earlier run
-
 # save maximum a posteriori (MAP) values for parameters from fitted model (see CC_jags.txt for more details)
 for (n in 1:nagents) {
   X <- samples$BUGSoutput$sims.list$omega1[,n]
@@ -86,114 +81,9 @@ for (n in 1:nagents) {
   MAP$pbeta[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))] # this is the slope
 }
 
-#MAP <- read.csv("../Andreas/MAP.13.csv")
-
-p_load(tidyverse)
-
 # Add participant info
 MAP$UniqueID = unique(np$UniqueID)
 np_round1 = np %>% subset(Round == 1) %>% select(UniqueID, Condition, Gender, BreakfastToday, BreakfastUsually, HowHungry, Punishment.First, GroupHunger, Condition.Name)
 df = merge(MAP, np_round1, by = "UniqueID")
 
-write.csv(df,"MAP13_df.csv", row.names = FALSE) #Ida trying
-
-#---ANALYSIS
-
-model_pbeta = lm(pbeta ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-summary(model_pbeta)
-
-#Gender effects
-t.test(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"])
-boxplot(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"])
-
-df$contr_avg <- rowMeans(c) # calculating the average contribution per participant
-
-model_pbeta = lm(pbeta ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-
-report(model_pbeta)
-
-# plots
-mydat <- tibble(x=0:20, 
-                y = 0:20)
-
-ggplot(mydat, aes(x=x, y=y)) + 
-  geom_segment(df, mapping = aes(x = 0, xend = 20, y = 0, yend = pbeta*20, color = as.factor(BreakfastToday))) +
-  xlim(0, 20) +
-  ylim(0, 20) +
-  xlab("Belief about other' contribution") +
-  ylab("My contribution") +
-  labs(color = "Condition") +
-  ggtitle("Slopes for the Conditional Cooperation")
-
-df_nb = df %>% subset(BreakfastToday == 0)
-df_b = df %>% subset(BreakfastToday == 1)
-
-ggplot(mydat, aes(x=x, y=y)) + 
-  geom_segment(df_nb, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
-  geom_segment(df_b, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
-  xlim(0, 20) +
-  ylim(0, 20) +
-  xlab("Belief about other' contribution") +
-  ylab("My contribution") +
-  labs(color = "Condition") +
-  ggtitle("Slopes for the Conditional Cooperation")
-
-df_nb = df %>% subset(Condition == 0)
-df_b = df %>% subset(Condition == 1)
-
-ggplot(mydat, aes(x=x, y=y)) + 
-  geom_segment(df_nb, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
-  geom_segment(df_b, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
-  xlim(0, 20) +
-  ylim(0, 20) +
-  xlab("Belief about other' contribution") +
-  ylab("My contribution") +
-  labs(color = "Condition") +
-  ggtitle("Slopes for the Conditional Cooperation")
-
-# Lambda: Are one's decay rate determined by breakfast eating? 
-# In the paper they find the no breakfast group to be more influenced by the other group members 
-# aka weigting you belief over preference. Aka smaller decay rate
-model_lambda = lm(lambda ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-
-
-df_nb = df %>% subset(BreakfastToday == 0)
-df_b = df %>% subset(BreakfastToday == 1)
-
-# Boxplot
-ggplot(df, aes(x=as.factor(BreakfastToday), y=lambda)) + 
-  geom_boxplot() +
-  geom_point() + 
-  xlab("Condition") +
-  ylab("Value") +
-  ggtitle("Initial weighting of beliefs per condition")
-
-### 
-# Omega1 initial weigting of beliefs
-
-model_omega1 = lm(omega1 ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-report(model_omega1)
-
-# Boxplot
-ggplot(df, aes(x=as.factor(BreakfastToday), y=omega1)) + 
-  geom_boxplot() +
-  geom_point() +
-  xlab("Condition") +
-  ylab("Value") +
-  ggtitle("Gamma per condition")
-
-### Gamma
-# The higher the gamma, the more you weight your beliefs from last round
-# The lower the more you weight what you observed in the last round
-# Hungry people should have lower gamma since they weight more about what they observed / influence
-model_gamma = lm(gamma ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
-
-report(model_gamma)
-
-# Boxplot
-ggplot(df, aes(x=as.factor(BreakfastToday), y=gamma)) + 
-  geom_boxplot() +
-  geom_point() +
-  xlab("Condition") +
-  ylab("Value") +
-  ggtitle("Decay rate per condition")
+#write.csv(df,"MAP13_df.csv", row.names = FALSE) #this is then loaded in analysis script
