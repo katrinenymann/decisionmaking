@@ -1,3 +1,5 @@
+#script for running jags model
+
 model {
 
   #data is nagents, ntrials, index of vals, matrix of contributions (c), and average contribution (Ga)
@@ -18,7 +20,7 @@ model {
     omega[n,1] <- omega1[n]
     
     #assume beliefs about others on first trial is reflected in first contribution. Simplification for model.
-    Gb[n,1] <- c[n,1] # my initial belives about others is what I give in the round
+    Gb[n,1] <- c[n,1] # my initial beliefs about others is what I give in the round
     
     mu_c[n,1] <- Ga[n,1]
   }
@@ -28,23 +30,35 @@ model {
     
     for (n in 1:nagents) {
     
-      Gb[n,t] <- (gamma[n]*(Gb[n,t-1]))+((1-gamma[n])*(Ga[n,t-1])) # Belief updated using the weighting of beliefs and the previous belief and weighting of preferences and the average contribution. 
+      Gb[n,t] <- (gamma[n]*(Gb[n,t-1]))+((1-gamma[n])*(Ga[n,t-1]))
+      # Belief updated using the weighting of beliefs and the previous belief and weighting of preferences and the average contribution. 
+      #^^updating of beliefs based on previous belief (weighted by gamma)
+      #and preferences (weighted by 1 - gamma) (Ga = their average contribution)
+      
       
       #this line is necessary to avoid zero indexing
-      pval_index[n,t] <- ifelse(round(Gb[n,t])>1,round(Gb[n,t]),1) # the rounded belief or 1
+      pval_index[n,t] <- ifelse(round(Gb[n,t])>1,round(Gb[n,t]),1) # pval is the rounded belief or 1
 
 
 	# belief is used to estimate preference      
       p[n,t] <- pvals[n,pval_index[n,t]] # p for preference
       
-      omega[n,t] <- omega[n,t-1]*(1-lambda[n])#exp(-lambda[n]) # weighting of beleifs determined by last round's weighting of beliefs * (1 - decay rate)
+      omega[n,t] <- omega[n,t-1]*(1-lambda[n])#exp(-lambda[n]) # weighting of beliefs determined by last round's weighting of beliefs * (1 - decay rate)
+      #^^omega = weighing of beliefs (relative to prefs).
+      #weighting of beliefs gange 1 - decay rate. Så belief ratings falder over tid.
+      #every round, belief is updated. e.g. if decay rate = 0.1. Then beliefs are multiplied with 0.9 every round...
+      
       
       # departs from simulation function. Data needs to be stochastic,
       # so we don't simulate c directly, rather mean of c distribution
       mu_c[n,t] <- ((omega[n,t])*Gb[n,t]) + ((1-omega[n,t])*p[n,t]) 
-		weighting of belief*belief + weighing of pref * pref
+		
+		#weighting of belief*belief + weighing of pref * pref
+		#^^ omega*Gb = weighing of beliefs*beliefs.
+      #last half: weighing of prefs * prefs.
       
       c[n,t] ~ dnorm(mu_c[n,t],.1)
+      #^^mean and sd of normal distribution
     }
     
   }

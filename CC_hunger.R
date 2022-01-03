@@ -1,4 +1,3 @@
-#Ida was here! :D
 # seed RNG and load libraries
 set.seed(13)
 library(R2jags)
@@ -14,8 +13,7 @@ library(report)
 # https://zenodo.org/record/3764693
 
 # set working directory and load data
-#setwd("/Users/au183362/Documents/asst_prof/teaching/decision_making/E2021/classes/open_data/Fraser_Nettle/")
-a <- read.csv("../../Hunger study/Experiment_2.csv", sep = ";")
+a <- read.csv("Experiment_2.csv", sep = ";")
 
 # Preprocess data
 a$UniqueID=factor(paste(a$Experiment, a$Participant.Number))
@@ -61,11 +59,12 @@ MAP$pbeta <- array(0,nagents)
 data <- list("ntrials", "nagents", "vals", "c","Ga") #data inputted into jags
 params <- c("omega1","lambda","gamma","p0","pbeta","c","omega") #parameters we'll track in jags
 # load and run jags model
+
 samples <- jags(data, inits=NULL, params,
      model.file ="CC_jags.txt",
      n.chains=3, n.iter=5000, n.burnin=1000, n.thin=1)
 
-samples = jags_output
+samples = jags_output #load jags output from earlier run
 
 # save maximum a posteriori (MAP) values for parameters from fitted model (see CC_jags.txt for more details)
 for (n in 1:nagents) {
