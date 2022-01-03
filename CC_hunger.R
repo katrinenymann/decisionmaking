@@ -1,4 +1,4 @@
-# seed RNG and load libraries
+# seed seed and load libraries 
 set.seed(1982)
 library(R2jags)
 library(polspline)
