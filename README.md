@@ -1,4 +1,4 @@
-# The Effects of Hunger on Conditional Cooperation in a Public Goods Game - Decision Making exam 2022
+# The Effects of Hunger on Conditional Cooperation in a Public Goods Game - Decision Making Exam 2022
 This repository contains the full analysis for the project
 
 The data used for the analysis is publicly available for download at zenodo.org/record/3764693.
