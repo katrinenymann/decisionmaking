@@ -1,6 +1,10 @@
 # set seed and load libraries
-#Ida is back
+#Ida is back #this time actually me
 set.seed(13)
+
+install.packages("gitcreds")
+library(gitcreds)
+gitcreds_set()
 
 library(R2jags)
 library(polspline)
