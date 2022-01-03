@@ -1,5 +1,6 @@
-# seed RNG and load libraries
+# set seed and load libraries
 set.seed(13)
+
 library(R2jags)
 library(polspline)
 library(lmerTest)
