@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 p_load(R2jags) ; p_load(coda) ; p_load(bayesplot)
 #p_load(CalvinBayes)
 p_load(dplyr)
+p_load(mcmcplots)
+install.packages("R2jags")
 ```
 
 ```{r}
@@ -21,13 +23,15 @@ load("jags13.mcmc") #list of 3...
 ```{r}
 #LOOK AT IT
 glimpse(jags_output)
+summary(jags_output)
+glimpse(jags13.mcmc)
+#summary(jags13.mcmc) #takes forever
 
 #prøv enkeltvis
-  test <- jags_output$BUGSoutput$sims.list$omega[,2,9] #shape: jags runs, participant, round
-  hist(test)
-  density(test)$x[which(density(test)$y==max(density(test)$y))]
-
-
+test <- jags_output$BUGSoutput$sims.list$omega[,2,9] #shape: jags runs, participant, round
+test
+hist(test)
+density(test)$x[which(density(test)$y==max(density(test)$y))]
 
 #LOOP
 params <- jags_output$parameters.to.save
@@ -36,6 +40,7 @@ params <- list("omega", "lambda", "gamma", "p0", "pbeta")
 for (param in params) {
   print(param)
   test <- jags_output$BUGSoutput$sims.list$param[,2,9] #shape: jags runs, participant, round
+  print(test)
   hist(test)
   density(test)$x[which(density(test)$y==max(density(test)$y))]
     
@@ -52,6 +57,15 @@ for (param in params) {
   mcyay <- as.mcmc(samples)
 ```
 
+```{r}
+#PLOTS
+par(mar=c(1,1,1,1)) #fix figure margins too large error ... NOT WORKING
+#typed dev.off()
+denplot(jags_output)
+denplot(jags13.mcmc)
+```
+
+
 
 #NOTHING works without having jags installed :/ but here are some things to try on Ucloud:
 ```{r}
@@ -59,5 +73,8 @@ bayesmix::plot(jags_output)
 
 pp.check(x, observed, simulated, xlab='Observed data', ylab='Simulated data', 
                      main='Posterior Predictive Check', ...)
+
+
+jags13.mcmc
 ```
 
