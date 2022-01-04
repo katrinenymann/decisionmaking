@@ -39,7 +39,7 @@ t.test(mc.data$HowHungry~mc.data$Condition.Name, var.equal=T)
 # extract info about experiment from data
 ntrials <- length(unique(np$Round)) # number of rounds played (aka trials)
 nagents <- length(unique(np$UniqueID)) # number of participants
-vals <- seq(1,20,1) #possible values to contribute - from 0 to 20 tokens
+vals <- seq(0,20,1) #possible values to contribute - from 0 to 20 tokens #@CHANGED TO 0 NOW
 
 # extract the relevant contribution values from the overall dataframe
 c <- matrix(np$Contribution, nrow = ntrials, ncol = nagents) # converting the contributions to a matrix to feed to JAGS

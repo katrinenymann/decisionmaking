@@ -1,0 +1,63 @@
+---
+title: "inspect_jags"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+p_load(R2jags) ; p_load(coda) ; p_load(bayesplot)
+#p_load(CalvinBayes)
+p_load(dplyr)
+```
+
+```{r}
+load("jags13.Rdata") #jags_output Rdata object
+load("jags13.mcmc") #list of 3...
+```
+
+```{r}
+#LOOK AT IT
+glimpse(jags_output)
+
+#prøv enkeltvis
+  test <- jags_output$BUGSoutput$sims.list$omega[,2,9] #shape: jags runs, participant, round
+  hist(test)
+  density(test)$x[which(density(test)$y==max(density(test)$y))]
+
+
+
+#LOOP
+params <- jags_output$parameters.to.save
+params <- list("omega", "lambda", "gamma", "p0", "pbeta")
+
+for (param in params) {
+  print(param)
+  test <- jags_output$BUGSoutput$sims.list$param[,2,9] #shape: jags runs, participant, round
+  hist(test)
+  density(test)$x[which(density(test)$y==max(density(test)$y))]
+    
+}
+  
+
+
+  test <- samples$BUGSoutput$sims.list$pbeta[,5] #shape: jags runs, participant, round
+  hist(test)
+  density(test)$x[which(density(test)$y==max(density(test)$y))]
+  
+  dim(samples$BUGSoutput$sims.list$gamma)
+  
+  mcyay <- as.mcmc(samples)
+```
+
+
+#NOTHING works without having jags installed :/ but here are some things to try on Ucloud:
+```{r}
+bayesmix::plot(jags_output)
+
+pp.check(x, observed, simulated, xlab='Observed data', ylab='Simulated data', 
+                     main='Posterior Predictive Check', ...)
+```
+
