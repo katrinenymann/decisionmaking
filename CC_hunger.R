@@ -66,6 +66,11 @@ samples <- jags(data, inits=NULL, params,
      model.file ="CC_jags.txt",
      n.chains=3, n.iter=5000, n.burnin=1000, n.thin=1)
 
+#-SAVE OUTPUT for use in another session
+#save(samples, file = "jags_output0.RData")
+#mcmc13_0 <- as.mcmc(samples)
+#save(mcmc13_0, file = "jags13_0.mcmc")
+
 # save maximum a posteriori (MAP) values for parameters from fitted model (see CC_jags.txt for more details)
 for (n in 1:nagents) {
   X <- samples$BUGSoutput$sims.list$omega1[,n]
@@ -86,4 +91,4 @@ MAP$UniqueID = unique(np$UniqueID)
 np_round1 = np %>% subset(Round == 1) %>% select(UniqueID, Condition, Gender, BreakfastToday, BreakfastUsually, HowHungry, Punishment.First, GroupHunger, Condition.Name)
 df = merge(MAP, np_round1, by = "UniqueID")
 
-#write.csv(df,"MAP13_df.csv", row.names = FALSE) #this is then loaded in analysis script
+write.csv(df,"MAP13_df_0.csv", row.names = FALSE) #this is then loaded in analysis script

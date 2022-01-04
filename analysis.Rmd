@@ -1,6 +1,8 @@
 ---
 title: "analysis"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +17,10 @@ library(tidyverse) ; library(ggplot2)
 
 #sam <- jags_output #load previously created jags object
 #map <- read.csv("MAP.13.csv") #load previously created MAP values
-df <- read.csv("MAP13_df.csv") #load previously created MAP values + participant info
+df0 <- read.csv("MAP13_df_0.csv") #the one with vals 0-20
+df <- df0
+df2 <- read.csv("MAP13_df.csv") #load previously created MAP values + participant info
+
 
 df_nb_con = df %>% subset(Condition == 0) #in no breakfast condition/group
 df_b_con = df %>% subset(Condition == 1) #in breakfast condition/group
@@ -33,10 +38,15 @@ summary(model_pbeta)
 report(model_pbeta)
 ```
 
-#(non-existing) gender effects
+# t-tests for PBETA
 ```{r}
-t.test(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"]) #p = .008
+#(non-existing) gender effects
+t.test(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"]) #p = .007
 boxplot(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"])
+
+#breakfast/no breakfast condition
+t.test(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1]) #p = .136
+boxplot(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1])
 ```
 
 #preference (pbeta) slopes
