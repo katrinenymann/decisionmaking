@@ -58,7 +58,7 @@ model {
       #last half: weighing of prefs * prefs.
       
       c[n,t] ~ dnorm(mu_c[n,t],.1)
-      #^^mean and sd of normal distribution
+      #^^mean and precision of normal distribution
     }
     
   }
