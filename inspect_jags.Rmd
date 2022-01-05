@@ -42,18 +42,19 @@ output$parameters.to.save #the parameters we saved
 dim(output$BUGSoutput$sims.list$pbeta) #pbeta is of the dimension 12000, 264
 head(output$BUGSoutput$sims.list$pbeta) #confused - are these an estimate per chain? VERY different!
 
-test <- output$BUGSoutput$sims.list$pbeta[,1] #just for participant 1
+test <- output$BUGSoutput$sims.list$pbeta[,25] #just for participant 1
 hist(test) #can see it's pretty uniform - a bad sign...?
 density(test)$x[which(density(test)$y==max(density(test)$y))] #MAP estimate 
 
-
+#THESE ARE THE NICE PLOTS, OPEN IN NEW HTML!:
+mcmcplot(output)
 
 
 #LOOP (SCRAPPED...)
 params <- list("lambda", "gamma", "p0", "pbeta")
 for (param in params) {
   print(param)
-  test <- output$BUGSoutput$sims.list$param[,1] #shape: ?
+  test <- output$BUGSoutput$sims.list$param[,param] #shape: ?
   print(test)
   hist(test)
   density(test)$x[which(density(test)$y==max(density(test)$y))]
@@ -61,15 +62,19 @@ for (param in params) {
 ```
 #PLOTS
 ```{r}
+plot(output$BUGSoutput$sims.list$pbeta[,25]) #25 has clear estimate...
+traceplot(output) #takes forever. GET RID OF C!
+
+glimpse(output)
 plot(output) #WHAT THE HECK IS GOING ON IN THIS PLOT???
+#^^maybe shows that estimates were better for some than others
 #plot(mc) #takes forever to run, uh oh...
 
 #try this:
 #posterior <- as.array(output)
 #dim(posterior)
 
-mcmc_intervals(output, pars = c("pbeta", "lambda"))
-
+mcmc_intervals(output, pars = c("pbeta"))
 
 par(mar=c(1,1,1,1)) #fix figure margins too large error ... NOT WORKING D:
 #typed dev.off()
@@ -78,8 +83,6 @@ denplot(jags13.mcmc)
 ```
 
 
-
-#NOTHING works without having jags installed :/ but here are some things to try on Ucloud:
 ```{r}
 pp.check(x, observed, simulated, xlab='Observed data', ylab='Simulated data', 
                      main='Posterior Predictive Check', ...)

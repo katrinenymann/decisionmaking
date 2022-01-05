@@ -50,16 +50,16 @@ Ga <- t(Ga)
 
 # empty data frame to fill with parameter estimates from jags model
 MAP <- c()
-MAP$omega1 <- array(0,nagents)
-MAP$lambda <- array(0,nagents)
-MAP$gamma <- array(0,nagents)
+#MAP$omega1 <- array(0,nagents)
+#MAP$lambda <- array(0,nagents)
+#MAP$gamma <- array(0,nagents)
 MAP$pbeta <- array(0,nagents)
 #-----------------------------------------------------------
   
 #-----------------------------------------------------------
 #prepare jags model for inference
 data <- list("ntrials", "nagents", "vals", "c","Ga") #data inputted into jags
-params <- c("omega1","lambda","gamma","p0","pbeta","c","omega") #parameters we'll track in jags
+params <- c("pbeta") #parameters we'll track in jags
 # load and run jags model
 
 samples <- jags(data, inits=NULL, params,
@@ -67,20 +67,20 @@ samples <- jags(data, inits=NULL, params,
      n.chains=3, n.iter=5000, n.burnin=1000, n.thin=1)
 
 #-SAVE OUTPUT for use in another session
-#save(samples, file = "jags_output0.RData")
-#mcmc13_0 <- as.mcmc(samples)
-#save(mcmc13_0, file = "jags13_0.mcmc")
+save(samples, file = "jags_output0_pbeta.RData")
+mcmc13_0 <- as.mcmc(samples)
+save(mcmc13_0, file = "jags13_0_pbeta.mcmc")
 
 # save maximum a posteriori (MAP) values for parameters from fitted model (see CC_jags.txt for more details)
 for (n in 1:nagents) {
-  X <- samples$BUGSoutput$sims.list$omega1[,n]
-  MAP$omega1[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))]
+  #X <- samples$BUGSoutput$sims.list$omega1[,n]
+  #MAP$omega1[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))]
 
-  X <- samples$BUGSoutput$sims.list$lambda[,n]
-  MAP$lambda[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))]
+  #X <- samples$BUGSoutput$sims.list$lambda[,n]
+  #MAP$lambda[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))]
   
-  X <- samples$BUGSoutput$sims.list$gamma[,n]
-  MAP$gamma[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))]
+  #X <- samples$BUGSoutput$sims.list$gamma[,n]
+  #MAP$gamma[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))]
   
   X <- samples$BUGSoutput$sims.list$pbeta[,n]
   MAP$pbeta[n] <-density(X)$x[which(density(X)$y==max(density(X)$y))] # this is the slope
@@ -91,4 +91,4 @@ MAP$UniqueID = unique(np$UniqueID)
 np_round1 = np %>% subset(Round == 1) %>% select(UniqueID, Condition, Gender, BreakfastToday, BreakfastUsually, HowHungry, Punishment.First, GroupHunger, Condition.Name)
 df = merge(MAP, np_round1, by = "UniqueID")
 
-write.csv(df,"MAP13_df_0.csv", row.names = FALSE) #this is then loaded in analysis script
+write.csv(df,"MAP13_df_0_pbeta.csv", row.names = FALSE) #this is then loaded in analysis script

@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #libraries & loading
 ```{r}
+a <- read.csv("Experiment_2.csv")
 #set working directory
 
 library(tidyverse) ; library(ggplot2)
@@ -46,6 +47,8 @@ boxplot(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"])
 
 #breakfast/no breakfast condition
 t.test(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1]) #p = .136
+#ikke normalfordelt! (+ ceiling effect...)
+
 boxplot(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1])
 ```
 
