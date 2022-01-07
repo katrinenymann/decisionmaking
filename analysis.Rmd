@@ -11,10 +11,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #libraries & loading
 ```{r}
+
 a <- read.csv("Experiment_2.csv")
+# Preprocess data
+a$UniqueID=factor(paste(a$Experiment, a$Participant.Number))
+a$Previous.Rounds=a$Round-1
+np=subset(a, Punishment.Round=="N")
 #set working directory
 
-library(tidyverse) ; library(ggplot2)
+library(tidyverse) ; library(ggplot2) ; library(patchwork)
 
 #sam <- jags_output #load previously created jags object
 #map <- read.csv("MAP.13.csv") #load previously created MAP values
@@ -33,30 +38,43 @@ df_b = df %>% subset(BreakfastToday == 1) #ACTUALLY breakfast
 #PBETA (preference slope)
 #lm models
 ```{r}
-#@interaction effect doesn't make sense jf. Andreas
-model_pbeta = lm(pbeta ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+#  
+model_pbeta = lm(pbeta ~ BreakfastToday + BreakfastUsually + HowHungry, df)
 summary(model_pbeta)
 report(model_pbeta)
 ```
 
 # t-tests for PBETA
-```{r}
-#(non-existing) gender effects
-t.test(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"]) #p = .007
+```{r} 
+# Since data is not normally distributed we break assumptions, while performing the t test
+qqnorm(df$pbeta)
+
+# gender effects
+test = t.test(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"]) #p = .007
 boxplot(df$pbeta[df$Gender=="F"],df$pbeta[df$Gender=="M"])
+report(test)
 
 #breakfast/no breakfast condition
-t.test(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1]) #p = .136
+test2 = t.test(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1]) #p = .136
 #ikke normalfordelt! (+ ceiling effect...)
 
 boxplot(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1])
+
+report(test2)
+
+test3 = t.test(df$pbeta[df$BreakfastToday==0],df$pbeta[df$BreakfastToday==1]) #p = .136
+#ikke normalfordelt! (+ ceiling effect...)
+
+boxplot(df$pbeta[df$Condition==0],df$pbeta[df$Condition==1])
+
+report(test3)
 ```
 
 #preference (pbeta) slopes
 ```{r}
 mydat <- tibble(x=0:20, 
                 y = 0:20)
-
+# Plot all slopes
 ggplot(mydat, aes(x=x, y=y)) + 
   geom_segment(df, mapping = aes(x = 0, xend = 20, y = 0, yend = pbeta*20, color = as.factor(BreakfastToday))) +
   xlim(0, 20) +
@@ -66,6 +84,7 @@ ggplot(mydat, aes(x=x, y=y)) +
   labs(color = "Condition") +
   ggtitle("Individual Slopes for Cooperative Preferences (color = condition)")
 
+# Plot mean slopes
 ggplot(mydat, aes(x=x, y=y)) + 
   geom_segment(df_nb, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
   geom_segment(df_b, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(BreakfastToday))) +
@@ -76,6 +95,7 @@ ggplot(mydat, aes(x=x, y=y)) +
   labs(color = "Condition") +
   ggtitle("Mean group slopes for Cooperative Preferences (ACTUAL)")
 
+# Plot mean slopes
 ggplot(mydat, aes(x=x, y=y)) + 
   geom_segment(df_nb_con, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
   geom_segment(df_b_con, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(pbeta*20), color = as.factor(Condition))) +
@@ -84,8 +104,11 @@ ggplot(mydat, aes(x=x, y=y)) +
   xlab("Belief about others' contribution") +
   ylab("My contribution") +
   labs(color = "Condition") +
-  ggtitle("Mean group slopes for Cooperative Preferences (CONDITION)")
+  ggtitle("Mean group slopes for Cooperative Preferences (CONDITION)") #+
+  #geom_errorbar()
 
+?polpsline
+# Condition leaves a bigger difference in slopes. also against what we would think since condition is the no breakfast groups but also containing the people who accidently ate breakfast anyway
 ```
 
 #LAMBDA (decay rate)
@@ -93,8 +116,8 @@ Lambda: Is one's decay rate determined by breakfast eating?
 In the paper they find the no breakfast group to be more influenced by the other group members 
 aka weighting you belief over preference. Aka smaller decay rate
 ```{r}
-#@DROP interaction effect
-model_lambda = lm(lambda ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+#
+model_lambda = lm(lambda ~ BreakfastToday + BreakfastUsually + HowHungry, df)
 
 ggplot(df, aes(x=as.factor(BreakfastToday), y=lambda)) + 
   geom_boxplot() +
@@ -107,8 +130,8 @@ ggplot(df, aes(x=as.factor(BreakfastToday), y=lambda)) +
 
 #OMEGA1 (initial weighting of beliefs)
 ```{r}
-#@DROP interaction...
-model_omega1 = lm(omega1 ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+#
+model_omega1 = lm(omega1 ~ BreakfastToday + BreakfastUsually + HowHungry, df)
 report(model_omega1)
 
 ggplot(df, aes(x=as.factor(BreakfastToday), y=omega1)) + 
@@ -124,8 +147,8 @@ The higher the gamma, the more you weight your beliefs from last round
 The lower, the more you weight what you observed in the last round
 Hungry people should have lower gamma since they weight more about what they observed / influence (?)
 ```{r}
-#@drop interaction
-model_gamma = lm(gamma ~ BreakfastToday + BreakfastUsually + HowHungry + BreakfastToday*BreakfastUsually, df)
+#
+model_gamma = lm(gamma ~ BreakfastToday + BreakfastUsually + HowHungry, df)
 report(model_gamma)
 
 # Boxplot
@@ -133,8 +156,130 @@ ggplot(df, aes(x=as.factor(BreakfastToday), y=gamma)) +
   geom_boxplot() +
   geom_point() +
   xlab("Condition") +
-  ylab("Value") +
+```
+
+
+
+```{r}
+ylab("Value") +
   ggtitle("Parameter weighting of beliefs per condition")
 ```
 
+#Examples of data vs. slope
+```{r}
+#### Check one participant and compare lagged contribution with our pbeta
+# A good match
+data=subset(np, UniqueID == "Original 2")
+data= subset(data, Punishment.Round=="N")
+
+slope = df$pbeta[2]
+
+
+plot1 = ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
+  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
+  geom_point() +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about other' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("A little off")
+
+# Undetected free-rider 
+data2=subset(np, UniqueID == "Original 3")
+data2= subset(data2, Punishment.Round=="N")
+
+slope = df$pbeta[3]
+
+plot2 = ggplot(data2, aes(x=Lagged.MCO, y=Contribution)) + 
+  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
+  geom_point() +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about other' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Undetected free-rider")
+
+#
+data=subset(np, UniqueID == "Original 10")
+data= subset(data, Punishment.Round=="N")
+
+slope = df$pbeta[10]
+plot3 = ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
+  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
+  geom_point() +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about other' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Influenced by one outlier")
+
+#
+data=subset(np, UniqueID == "Original 120")
+data= subset(data, Punishment.Round=="N")
+
+slope = df$pbeta[100]
+plot4 = ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
+  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
+  geom_point() +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about other' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("A good match")
+
+
+(plot1 + plot4) / (plot2 + plot3) +  plot_annotation(tag_levels = 'A')
+
+
+data=subset(np, UniqueID == "Original 18")
+data= subset(data, Punishment.Round=="N")
+
+slope = df$pbeta[43]
+df$UniqueID[43]
+
+
+# Make mean slopes + error 
+# Make data for the slope
+slope0 = mean(df$pbeta[df$Condition == 0])
+slope1 = mean(df$pbeta[df$Condition == 1])
+
+xs = seq(0, 20, by =1)
+ys0 = slope0*xs
+ys1 = slope1*xs
+dat0 = data.frame(xs, ys0)
+dat1 = data.frame(xs, ys1)
+sd0 = sd(df$pbeta[df$Condition == 0])
+sd1 = sd(df$pbeta[df$Condition == 1])
+
+dat0$grp <- paste("No Breakfast")
+dat1$grp <- paste("Breakfast")
+
+plot1 = ggplot(dat1, mapping = aes(x = xs, y = ys1, color = "Breakfast")) + 
+  geom_line() +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Lagged contribution of group / Belief about other' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Mean pbeta slope for each condition") + 
+  #geom_errorbar(aes(ymin = ys-sd, ymax = ys+sd)) +
+  geom_ribbon(aes(y = ys1, ymin = ys1 - sd1, ymax = ys1 + sd1), alpha = .2) 
+
+plot1 +  
+  geom_line(dat0, mapping = aes(x = xs, y = ys0, color = "No breakfast")) + 
+  geom_ribbon(aes(y = ys0, ymin = ys0 - sd1, ymax = ys0 + sd0), alpha = .2) +
+  scale_color_manual(
+      values = c(
+           "No breakfast"="red",
+           "Breakfast"="blue"))
+
+colors <- c("#9ECAE1","#F03B20")
+
+# it seems like some plots work and other have bad valued maybe related to not enough trials. They never gained the right estimates. 
+
+```
 
