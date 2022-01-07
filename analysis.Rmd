@@ -283,3 +283,12 @@ colors <- c("#9ECAE1","#F03B20")
 
 ```
 
+#(DELETED FROM CC_HUNGER):
+```{r}
+# Manipulation checks
+  mc.data=subset(a, Round==1 & Punishment.Round=="N")
+  table(mc.data$BreakfastToday, mc.data$Condition.Name)
+  t.test(mc.data$HowHungry~mc.data$Condition.Name, var.equal=T)
+  # Significantly more hungry when assigned to the no breakfast group
+```
+
