@@ -168,79 +168,58 @@ ylab("Value") +
 #Examples of data vs. slope
 ```{r}
 #### Check one participant and compare lagged contribution with our pbeta
-# A good match
-data=subset(np, UniqueID == "Original 2")
+#
+ID = df$UniqueID[6]
+slope = df$pbeta[6]
+data=subset(np, UniqueID == paste(ID))
 data= subset(data, Punishment.Round=="N")
 
-slope = df$pbeta[2]
-
-
-plot1 = ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
+ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
   geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
   geom_point() +
   xlim(0, 20) +
   ylim(0, 20) +
-  xlab("Belief about other' contribution") +
+  xlab("Belief about others' contribution") +
   ylab("My contribution") +
   labs(color = "Condition") +
-  ggtitle("A little off")
-
-# Undetected free-rider 
-data2=subset(np, UniqueID == "Original 3")
-data2= subset(data2, Punishment.Round=="N")
-
-slope = df$pbeta[3]
-
-plot2 = ggplot(data2, aes(x=Lagged.MCO, y=Contribution)) + 
-  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
-  geom_point() +
-  xlim(0, 20) +
-  ylim(0, 20) +
-  xlab("Belief about other' contribution") +
-  ylab("My contribution") +
-  labs(color = "Condition") +
-  ggtitle("Undetected free-rider")
+  ggtitle("Unique Participant ID:", paste(ID))
 
 #
-data=subset(np, UniqueID == "Original 10")
-data= subset(data, Punishment.Round=="N")
-
-slope = df$pbeta[10]
-plot3 = ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
-  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
-  geom_point() +
-  xlim(0, 20) +
-  ylim(0, 20) +
-  xlab("Belief about other' contribution") +
-  ylab("My contribution") +
-  labs(color = "Condition") +
-  ggtitle("Influenced by one outlier")
-
-#
-data=subset(np, UniqueID == "Original 120")
-data= subset(data, Punishment.Round=="N")
-
-slope = df$pbeta[100]
-plot4 = ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
-  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
-  geom_point() +
-  xlim(0, 20) +
-  ylim(0, 20) +
-  xlab("Belief about other' contribution") +
-  ylab("My contribution") +
-  labs(color = "Condition") +
-  ggtitle("A good match")
-
-
-(plot1 + plot4) / (plot2 + plot3) +  plot_annotation(tag_levels = 'A')
-
-
-data=subset(np, UniqueID == "Original 18")
-data= subset(data, Punishment.Round=="N")
-
+ID = df$UniqueID[43]
 slope = df$pbeta[43]
-df$UniqueID[43]
+data=subset(np, UniqueID == paste(ID))
+data= subset(data, Punishment.Round=="N")
 
+ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
+  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
+  geom_point() +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about others' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Unique Participant ID:", paste(ID))
+
+#
+ID = df$UniqueID[262]
+slope = df$pbeta[262]
+data=subset(np, UniqueID == paste(ID))
+data= subset(data, Punishment.Round=="N")
+
+ggplot(data, aes(x=Lagged.MCO, y=Contribution)) + 
+  geom_segment(mydat, mapping = aes(x = 0, xend = 20, y = 0, yend = mean(slope*20))) +
+  geom_point() +
+  xlim(0, 20) +
+  ylim(0, 20) +
+  xlab("Belief about others' contribution") +
+  ylab("My contribution") +
+  labs(color = "Condition") +
+  ggtitle("Unique Participant ID:", paste(ID))
+
+```
+
+# The mean pbeta slopes for each condition plot
+```{r}
 
 # Make mean slopes + error 
 # Make data for the slope
@@ -260,26 +239,23 @@ dat1$grp <- paste("Breakfast")
 
 plot1 = ggplot(dat1, mapping = aes(x = xs, y = ys1, color = "Breakfast")) + 
   geom_line() +
-  xlim(0, 20) +
-  ylim(0, 20) +
-  xlab("Lagged contribution of group / Belief about other' contribution") +
-  ylab("My contribution") +
+  xlim(-1, 20) +
+  ylim(-1, 20) +
+  xlab("Belief about others' contribution") +
+  ylab("Contribution") +
   labs(color = "Condition") +
   ggtitle("Mean pbeta slope for each condition") + 
   #geom_errorbar(aes(ymin = ys-sd, ymax = ys+sd)) +
-  geom_ribbon(aes(y = ys1, ymin = ys1 - sd1, ymax = ys1 + sd1), alpha = .2) 
+  geom_ribbon(aes(y = ys1, ymin = ys1 - sd1, ymax = ys1 + sd1, color = "+- one standard deviation",  fill = "skyblue"), show.legend = FALSE, alpha = .2) 
 
 plot1 +  
-  geom_line(dat0, mapping = aes(x = xs, y = ys0, color = "No breakfast")) + 
-  geom_ribbon(aes(y = ys0, ymin = ys0 - sd1, ymax = ys0 + sd0), alpha = .2) +
+  geom_line(dat0, mapping = aes(x = xs, y = ys0, color = "No Breakfast")) + 
+  geom_ribbon(aes(y = ys0, ymin = ys0 - sd1, ymax = ys0 + sd0, color = "+- one standard deviation", fill = "red"), show.legend = FALSE, alpha = .2) +
   scale_color_manual(
       values = c(
-           "No breakfast"="red",
-           "Breakfast"="blue"))
-
-colors <- c("#9ECAE1","#F03B20")
-
-# it seems like some plots work and other have bad valued maybe related to not enough trials. They never gained the right estimates. 
+           "No Breakfast"="red",
+           "Breakfast"="blue",
+            "+- one standard deviation" = "lightgrey"))
 
 ```
 
