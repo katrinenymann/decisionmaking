@@ -76,7 +76,7 @@ for (i in 1:niterations) {
 
   # load and run jags model
   samples <- jags(data, inits=NULL, params,
-       model.file ="Decision-making/CC_jags(1).txt",
+       model.file ="Decision-making/CC_jags_parameter_recovery.txt",
        n.chains=3, n.iter=5000, n.burnin=1000, n.thin=1)
   
   # save maximum a posteriori (MAP) values for parameters from fitted model

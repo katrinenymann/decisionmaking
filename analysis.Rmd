@@ -179,7 +179,7 @@ ggplot(data, aes(x=Lagged.MCO, y=Contribution)) +
   geom_point() +
   xlim(0, 20) +
   ylim(0, 20) +
-  xlab("Belief about others' contribution") +
+  xlab("Lagged contribution of others / Belief about others' contribution") +
   ylab("My contribution") +
   labs(color = "Condition") +
   ggtitle("Unique Participant ID:", paste(ID))
@@ -195,7 +195,7 @@ ggplot(data, aes(x=Lagged.MCO, y=Contribution)) +
   geom_point() +
   xlim(0, 20) +
   ylim(0, 20) +
-  xlab("Belief about others' contribution") +
+  xlab("Lagged contribution of others / Belief about others' contribution") +
   ylab("My contribution") +
   labs(color = "Condition") +
   ggtitle("Unique Participant ID:", paste(ID))
@@ -211,7 +211,7 @@ ggplot(data, aes(x=Lagged.MCO, y=Contribution)) +
   geom_point() +
   xlim(0, 20) +
   ylim(0, 20) +
-  xlab("Belief about others' contribution") +
+  xlab("Lagged contribution of others / Belief about others' contribution") +
   ylab("My contribution") +
   labs(color = "Condition") +
   ggtitle("Unique Participant ID:", paste(ID))
@@ -224,7 +224,9 @@ ggplot(data, aes(x=Lagged.MCO, y=Contribution)) +
 # Make mean slopes + error 
 # Make data for the slope
 slope0 = mean(df$pbeta[df$Condition == 0])
+slope0
 slope1 = mean(df$pbeta[df$Condition == 1])
+slope1
 
 xs = seq(0, 20, by =1)
 ys0 = slope0*xs
@@ -232,7 +234,9 @@ ys1 = slope1*xs
 dat0 = data.frame(xs, ys0)
 dat1 = data.frame(xs, ys1)
 sd0 = sd(df$pbeta[df$Condition == 0])
+sd0
 sd1 = sd(df$pbeta[df$Condition == 1])
+sd1
 
 dat0$grp <- paste("No Breakfast")
 dat1$grp <- paste("Breakfast")
